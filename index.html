@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirector</title>
+    <title>URL Redirector</title>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Get the URL parameter
@@ -16,23 +16,23 @@
                 return;
             }
             
-            // Ensure the path starts with a slash and remove duplicate 'mytextfiles' if present
+            // Ensure the path starts with a slash
             if (!filePath.startsWith('/')) {
                 filePath = '/' + filePath;
             }
+            
+            // Remove any duplicate 'mytextfiles' from the path
             filePath = filePath.replace(/^\/mytextfiles/, '');
             
-            // Construct the full URL to the text file
-            const basePath = window.location.pathname.includes('/mytextfiles/') 
-                ? '' 
-                : '/mytextfiles';
-            const fileUrl = basePath + filePath;
+            // Construct the correct path to the text file
+            // Always prepend '/mytextfiles' since that's where your files are stored
+            const fileUrl = '/mytextfiles' + filePath;
             
             // Fetch the file content
             fetch(fileUrl)
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        throw new Error(`File not found: ${fileUrl}`);
                     }
                     return response.text();
                 })
@@ -47,14 +47,18 @@
                     
                     // Check if URL needs protocol
                     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                        url = 'http://' + url;
+                        url = 'https://' + url;
                     }
                     
                     // Redirect to the URL from the file
                     window.location.href = url;
                 })
                 .catch(error => {
-                    document.body.innerHTML = `<h1>Error</h1><p>${error.message}</p>`;
+                    document.body.innerHTML = `
+                        <h1>Error</h1>
+                        <p>${error.message}</p>
+                        <p>Attempted to fetch: ${fileUrl}</p>
+                    `;
                     console.error('Error:', error);
                 });
         });
